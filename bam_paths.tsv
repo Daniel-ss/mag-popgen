@@ -1,0 +1,5 @@
+sample_id	reference_id	bam_path
+sample1	COMEBin_106	test_data/BI_to_COMEBIN_106.bam
+sample2	COMEBin_106	test_data/BII_to_COMEBIN_106.bam
+sample3	COMEBin_106	test_data/BIII_to_COMEBIN_106.bam
+sample4	COMEBin_106	test_data/BIV_to_COMEBIN_106.bam
