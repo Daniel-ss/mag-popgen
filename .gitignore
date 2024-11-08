@@ -10,3 +10,4 @@ test_data/
 null/
 *paths.tsv
 metadata*
+*.swp
