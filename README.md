@@ -35,7 +35,7 @@ First, prepare the samplesheets with your input data that look as follows:
 `mag_samplesheet.tsv`:
 
 ```csv
-sample	mag_id	mag_path
+sample_id	mag_id	mag_path
 SAMPLE_1	CONCOCT_59	MAGs_folder/CONCOCT_59.fa
 ```
 
@@ -48,6 +48,14 @@ reference_id	reads_id	bam_path
 SAMPLE_2	SAMPLE_1	BAMs_folder/SAMPLE1_to_SAMPLE2.bam
 ```
 
+`Metadata.tsv`:
+
+The Metadata.tsv file must have at least the column sample_id. 
+
+```csv
+sample_id	Metadata_1	..	Metadata_n	
+SAMPLE_1	0.5	..	0.9
+```
 
 Now, you can run the pipeline using:
 
