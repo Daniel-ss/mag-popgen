@@ -1,5 +1,13 @@
-sample_id	reference_id	bam_path
-sample1	COMEBin_106	test_data/BI_to_COMEBIN_106.bam
-sample2	COMEBin_106	test_data/BII_to_COMEBIN_106.bam
-sample3	COMEBin_106	test_data/BIII_to_COMEBIN_106.bam
-sample4	COMEBin_106	test_data/BIV_to_COMEBIN_106.bam
+sample_id	reference_id	reads_id	bam_path
+sample1	BI	BI	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BI/BI_to_BI.bam
+sample1	BI	BII	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BI/BII_to_BI.bam
+sample1	BI	BIII	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BI/BIII_to_BI.bam
+sample1	BI	BIV	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BI/BIV_to_BI.bam
+sample2	BII	BI	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BII/BI_to_BII.bam
+sample2	BII	BII	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BII/BII_to_BII.bam
+sample2	BII	BIII	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BII/BIII_to_BII.bam
+sample2	BII	BIV	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BII/BIV_to_BII.bam
+sample3	BIII	BI	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BIII/BI_to_BIII.bam
+sample3	BIII	BI	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BIII/BII_to_BIII.bam
+sample3	BIII	BI	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BIII/BIII_to_BIII.bam
+sample3	BIII	BI	/home/daniel/Documents/Tesis/Results/01_Mapping/metaspadesextendedk/Mapped_to_BIII/BIV_to_BIII.bam

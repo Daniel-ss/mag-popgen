@@ -1,6 +1,8 @@
 include { CHECKM2 } from '../modules/checkm2'
+include { PARSE_INPUTS} from '../modules/input_parsing'
 include { COVERM } from '../modules/coverm'
 include { EXTRACT_CONTIG_NAMES } from '../modules/mag_to_contig'
+include { GENERATE_HEATMAP } from '../modules/heatmap_generation'
 include { FREEBAYES } from '../modules/freebayes'
 include { PROKKA } from '../modules/prokka'
 include { POGENOM } from '../modules/pogenom'
@@ -41,25 +43,103 @@ workflow MAG_POPGEN {
     .map { sample_id, mag -> tuple(mag.baseName, mag) }
     .join(grouped_bams)
 
-    FREEBAYES(mag_bam_combined)
-    
-    // Combine MAGs with grouped BAM files and contig names
-    //coverm_input = mag_ch
-    //    .map { sample_id, mag -> tuple(mag.baseName, mag, sample_id) }
-    //   .combine(grouped_bams, by: 0)
-    //    .combine(EXTRACT_CONTIG_NAMES.out.contig_names, by: 0)
-    //    .map { mag_basename, mag, sample_id, bams, contig_names -> 
-    //        tuple(mag_basename, mag, sample_id, bams.flatten(), contig_names)
-    //    }
-
-    coverm_input = mag_bam_combined
-     .join(EXTRACT_CONTIG_NAMES.out.contig_names, by: 0)
-    
-
     // Run COVERM process
-    log.info "About to execute COVERM process"
-    coverm_input.view { "### COVERM input ### $it" }
-    COVERM(coverm_input)
+ 
+    // Parse input files
+    PARSE_INPUTS(params.bam_paths, params.mag_paths)
+
+    // Read and process the parsed inputs
+    parsed_data = PARSE_INPUTS.out
+        .map { file -> 
+            def json_text = file.text
+            def slurper = new groovy.json.JsonSlurper()
+            return slurper.parseText(json_text)
+        }
+
+    // Create a channel for each sample
+    sample_ch = parsed_data.flatMap { data ->
+        println "Processing parsed data..."
+        
+        data.mag_files.collect { sample_id, mags ->
+            println "Processing sample: ${sample_id}"
+            println "MAGs: ${mags}"
+            
+            try {
+                // Create genome definition file
+                def genome_def = "genome_def_${sample_id}.txt"
+                def genome_def_content = new StringBuilder()
+                
+                // Process MAGs
+                mags.each { mag ->
+                    println "Processing MAG: ${mag}"
+                    if (!mag.mag_path || !mag.mag_id) {
+                        println "Warning: Missing mag_path or mag_id in ${mag}"
+                        return
+                    }
+                    
+                    def mag_file = file(mag.mag_path)
+                    if (mag_file.exists()) {
+                        mag_file.eachLine { line ->
+                            if (line.startsWith('>')) {
+                                def contig_name = line.substring(1).split()[0]
+                                genome_def_content.append("${mag.mag_id}\t${contig_name}\n")
+                            }
+                        }
+                    } else {
+                        println "Warning: MAG file not found: ${mag.mag_path}"
+                    }
+                }
+                
+                // Get corresponding BAM files
+                def bams = data.bam_files[sample_id]
+                if (!bams) {
+                    println "Warning: No BAM files found for sample ${sample_id}"
+                    return null
+                }
+                
+                // Collect BAM paths
+                def bam_paths = bams.collect { bam -> 
+                    if (!bam.bam_path) {
+                        println "Warning: null BAM path in ${bam}"
+                        return null
+                    }
+                    return file(bam.bam_path)
+                }.findAll { it != null }
+                
+                if (bam_paths.isEmpty()) {
+                    println "Warning: No valid BAM paths for sample ${sample_id}"
+                    return null
+                }
+                
+                // Only create output if we have content
+                if (genome_def_content.length() > 0) {
+                    def genome_def_file = file("${workflow.workDir}/genome_def_${sample_id}.txt")
+                    genome_def_file.text = genome_def_content.toString()
+                    
+                    println "Created genome definition file for ${sample_id}"
+                    println "BAM paths: ${bam_paths}"
+                    
+                    return tuple(sample_id, genome_def_file, bam_paths)
+                }
+                
+                return null
+            } catch (Exception e) {
+                println "Error processing sample ${sample_id}: ${e.message}"
+                e.printStackTrace()
+                return null
+            }
+        }.findAll { it != null }
+    }
+    
+    // Add verification before COVERM
+    sample_ch.subscribe { println "Sample channel entry: $it" }
+ 
+    COVERM(sample_ch)
+
+    // Generate heatmaps for each coverage file
+    GENERATE_HEATMAP(COVERM.out.coverage)
+
+    FREEBAYES(mag_bam_combined)
 
     PROKKA(mag_ch)
     
