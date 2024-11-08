@@ -32,20 +32,20 @@ The pipeline takes a MAGs samplesheet, a BAM files samplesheet and a metadata fi
 
 First, prepare the samplesheets with your input data that look as follows:
 
-`mag_samplesheet.csv`:
+`mag_samplesheet.tsv`:
 
 ```csv
-sample,mag_id,mag_path
-SAMPLE_1,CONCOCT_59,MAGs_folder/CONCOCT_59.fa
+sample	mag_id	mag_path
+SAMPLE_1	CONCOCT_59	MAGs_folder/CONCOCT_59.fa
 ```
 
 Each row represents a MAG.
 
-`bam_samplesheet.csv`:
+`bam_samplesheet.tsv`:
 
 ```csv
-reads_id,reference_assembly,bam_path
-SAMPLE_1,SAMPLE_2,BAMs_folder/SAMPLE1_to_SAMPLE2.bam
+reference_id	reads_id	bam_path
+SAMPLE_2	SAMPLE_1	BAMs_folder/SAMPLE1_to_SAMPLE2.bam
 ```
 
 
