@@ -1,9 +1,9 @@
-//include { CHECKM2 } from '../modules/checkm2'
+include { CHECKM2 } from '../modules/checkm2'
 include { COVERM } from '../modules/coverm'
 include { EXTRACT_CONTIG_NAMES } from '../modules/mag_to_contig'
-//include { FREEBAYES } from '../modules/freebayes'
-//include { PROKKA } from '../modules/prokka'
-//include { POGENOM } from '../modules/pogenom'
+include { FREEBAYES } from '../modules/freebayes'
+include { PROKKA } from '../modules/prokka'
+include { POGENOM } from '../modules/pogenom'
 
 workflow MAG_POPGEN {
     // Create channels for input data
@@ -27,7 +27,7 @@ workflow MAG_POPGEN {
         .filter { it != null }
 
     // Run processes
-    //CHECKM2(mag_ch)
+    CHECKM2(mag_ch)
     EXTRACT_CONTIG_NAMES(mag_ch)
     EXTRACT_CONTIG_NAMES.out.contig_names.view { "Contig names output: $it" }    
 
@@ -41,7 +41,7 @@ workflow MAG_POPGEN {
     .map { sample_id, mag -> tuple(mag.baseName, mag) }
     .join(grouped_bams)
 
-    //FREEBAYES(mag_bam_combined)
+    FREEBAYES(mag_bam_combined)
     
     // Combine MAGs with grouped BAM files and contig names
     //coverm_input = mag_ch
@@ -61,21 +61,21 @@ workflow MAG_POPGEN {
     coverm_input.view { "### COVERM input ### $it" }
     COVERM(coverm_input)
 
-    //PROKKA(mag_ch)
+    PROKKA(mag_ch)
     
-    //pogenom_input = combined_ch
-    //    .join(FREEBAYES.out.vcf, by: [0, 1])
-    //    .join(COVERM.out.coverage, by: [0, 1])
-    //POGENOM(pogenom_input)
+    pogenom_input = combined_ch
+        .join(FREEBAYES.out.vcf, by: [0, 1])
+        .join(COVERM.out.coverage, by: [0, 1])
+    POGENOM(pogenom_input)
 
-    // Collect and emit results
-    //results = CHECKM2.out.results
-    //   .mix(COVERM.out.coverage)
-    //   .mix(FREEBAYES.out.vcf)
-    //   .mix(PROKKA.out.annotation)
-    //   .mix(POGENOM.out.results)
-    //   .collect()
+    //Collect and emit results
+    results = CHECKM2.out.results
+       .mix(COVERM.out.coverage)
+       .mix(FREEBAYES.out.vcf)
+       .mix(PROKKA.out.annotation)
+       .mix(POGENOM.out.results)
+       .collect()
 
-    //emit:
-    //results
+    emit:
+    results
 }

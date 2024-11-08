@@ -8,5 +8,5 @@ testing*
 test_data/
 *.pyc
 null/
-*paths.csv
-metadata.txt
+*paths.tsv
+metadata*
