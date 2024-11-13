@@ -3,6 +3,8 @@ include { PARSE_INPUTS} from '../modules/input_parsing'
 include { COVERM } from '../modules/coverm'
 include { EXTRACT_CONTIG_NAMES } from '../modules/mag_to_contig'
 include { GENERATE_HEATMAP } from '../modules/heatmap_generation'
+include { BOWTIE2_BUILD } from '../modules/bowtie2_build'
+include { BOWTIE2_MAPPING } from '../modules/bowtie2_mapping'
 include { FREEBAYES } from '../modules/freebayes'
 include { PROKKA } from '../modules/prokka'
 include { POGENOM } from '../modules/pogenom'
@@ -31,7 +33,7 @@ workflow MAG_POPGEN {
     // Run processes
     CHECKM2(mag_ch)
     EXTRACT_CONTIG_NAMES(mag_ch)
-    EXTRACT_CONTIG_NAMES.out.contig_names.view { "Contig names output: $it" }    
+    //EXTRACT_CONTIG_NAMES.out.contig_names.view { "Contig names output: $it" }    
 
     // Group BAM files by reference genome
     grouped_bams = bam_ch
@@ -62,7 +64,7 @@ workflow MAG_POPGEN {
         
         data.mag_files.collect { sample_id, mags ->
             println "Processing sample: ${sample_id}"
-            println "MAGs: ${mags}"
+            //println "MAGs: ${mags}"
             
             try {
                 // Create genome definition file
@@ -71,7 +73,7 @@ workflow MAG_POPGEN {
                 
                 // Process MAGs
                 mags.each { mag ->
-                    println "Processing MAG: ${mag}"
+                    //println "Processing MAG: ${mag}"
                     if (!mag.mag_path || !mag.mag_id) {
                         println "Warning: Missing mag_path or mag_id in ${mag}"
                         return
@@ -116,8 +118,8 @@ workflow MAG_POPGEN {
                     def genome_def_file = file("${workflow.workDir}/genome_def_${sample_id}.txt")
                     genome_def_file.text = genome_def_content.toString()
                     
-                    println "Created genome definition file for ${sample_id}"
-                    println "BAM paths: ${bam_paths}"
+                    //println "Created genome definition file for ${sample_id}"
+                    //println "BAM paths: ${bam_paths}"
                     
                     return tuple(sample_id, genome_def_file, bam_paths)
                 }
@@ -132,12 +134,16 @@ workflow MAG_POPGEN {
     }
     
     // Add verification before COVERM
-    sample_ch.subscribe { println "Sample channel entry: $it" }
+    //sample_ch.subscribe { println "Sample channel entry: $it" }
  
     COVERM(sample_ch)
 
     // Generate heatmaps for each coverage file
     GENERATE_HEATMAP(COVERM.out.coverage)
+
+    BOWTIE2_BUILD(mag_ch)
+
+    BOWTIE2_MAPPING(mag_ch, BOWTIE2_BUILD.out.flatten())
 
     FREEBAYES(mag_bam_combined)
 
