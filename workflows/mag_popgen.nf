@@ -23,6 +23,11 @@ workflow MAG_POPGEN {
 
     metadata_ch = Channel.fromPath(params.metadata)
     
+    reads_ch = Channel
+	.fromPath(params.reads_paths)
+	.splitCsv(header:true, sep:'\t')
+	.map { row -> tuple(row.sample_id, file(row.forward), file(row.reverse)) }	
+    
     // Combine MAG and BAM channels
     combined_ch = mag_ch.combine(bam_ch, by: 0)
         .map { sample_id, mag, reference_id, bam -> 
@@ -140,10 +145,13 @@ workflow MAG_POPGEN {
 
     // Generate heatmaps for each coverage file
     GENERATE_HEATMAP(COVERM.out.coverage)
-
+    
+    //Combine reads and mags channels
+    reads_mags_ch = mag_ch.combine(reads_ch, by: 0)
+    
     BOWTIE2_BUILD(mag_ch)
 
-    BOWTIE2_MAPPING(mag_ch, BOWTIE2_BUILD.out.flatten())
+    BOWTIE2_MAPPING(reads_mags_ch)
 
     FREEBAYES(mag_bam_combined)
 
