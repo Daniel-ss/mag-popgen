@@ -26,8 +26,8 @@ workflow MAG_POPGEN {
     reads_ch = Channel
 	.fromPath(params.reads_paths)
 	.splitCsv(header:true, sep:'\t')
-	.map { row -> tuple(row.sample_id, file(row.forward), file(row.reverse)) }	
-    
+	.map { row -> tuple(row.sample_id, file(row.forward), file(row.reverse)) } 
+
     // Combine MAG and BAM channels
     combined_ch = mag_ch.combine(bam_ch, by: 0)
         .map { sample_id, mag, reference_id, bam -> 
@@ -151,7 +151,10 @@ workflow MAG_POPGEN {
     
     BOWTIE2_BUILD(mag_ch)
 
-    BOWTIE2_MAPPING(reads_mags_ch)
+    // Combine reads and index channels
+    reads_index_ch = reads_ch.combine(BOWTIE2_BUILD.out.index)
+
+    BOWTIE2_MAPPING(reads_index_ch)
 
     FREEBAYES(mag_bam_combined)
 

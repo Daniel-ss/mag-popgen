@@ -4,10 +4,10 @@ process BOWTIE2_BUILD {
     publishDir "${params.outdir}/bowtie2/build", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(mag)
+    tuple val(reference_id), path(mag)
      
     output:
-    tuple val(sample_id), path("${sample_id}_${mag.baseName}*"), emit: index
+    tuple val(reference_id), val("${reference_id}_${mag.baseName}"), path("${reference_id}_${mag.baseName}*.bt2"), emit: index
 
     script:
     """
@@ -15,7 +15,7 @@ process BOWTIE2_BUILD {
     bowtie2-build \
      --threads 12 \
      ${mag} \
-     ${sample_id}_${mag.baseName}
+     ${reference_id}_${mag.baseName}
 
     """
 }

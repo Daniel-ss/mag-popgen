@@ -15,6 +15,7 @@ process COVERM {
      --genome-definition ${genome_definition} \
      --bam-files ${bam_files.join(' ')} \
      --methods relative_abundance \
+     --threads 12 \
      --output-file ${sample_id}_coverage.txt
     """
 }
