@@ -14,11 +14,6 @@ process BOWTIE2_MAPPING {
     script:
     """
 
-    INDEX=`find -L ./ -name "*.rev.1.bt2" | sed 's/.rev.1.bt2//'`
-
-#    echo "\$INDEX"
-#    echo "${sample_id}_to_${reference_mag}.bam"     
-#    touch ${sample_id}_to_${reference_mag}.bam
     bowtie2 \
      --threads 12 \
      -x ${reference_mag} \
