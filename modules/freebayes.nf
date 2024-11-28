@@ -1,14 +1,13 @@
 process FREEBAYES {
-
     conda "/opt/miniforge3/envs/genomics"
 
     publishDir "${params.outdir}/freebayes", mode: 'copy'
 
     input:
-    tuple val(reference_id), path(mag), path(bam_files)
+    tuple val(reference_mag), path(mag), path(bams)
 
     output:
-    tuple val(reference_id), path("${reference_id}_unfiltered.vcf"), emit: vcf
+    tuple val(reference_mag), path("${reference_mag}_unfiltered.vcf"), emit: vcf
 
     script:
     """
@@ -24,6 +23,6 @@ process FREEBAYES {
      -F 0.01 \
      -q 15 \
      --report-monomorphic \
-     -b ${bam_files.join(' ')} > ${reference_id}_unfiltered.vcf
+     ${bams.collect{"-b $it"}.join(' ')} > ${reference_mag}_unfiltered.vcf
     """
 }

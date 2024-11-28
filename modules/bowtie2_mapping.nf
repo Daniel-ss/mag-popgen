@@ -9,11 +9,10 @@ process BOWTIE2_MAPPING {
     tuple val(sample_id), path(R1), path(R2), val(reference_id), val(reference_mag), path(index_files)
 
     output:
-    tuple val(sample_id), val(reference_id), path("${sample_id}_to_${reference_mag}.bam")
+    tuple val(sample_id), val(reference_mag), path("${sample_id}_to_${reference_mag}.bam"), path("${sample_id}_to_${reference_mag}.bam.bai")
 
     script:
     """
-
     bowtie2 \
      --threads 12 \
      -x ${reference_mag} \
@@ -26,6 +25,7 @@ process BOWTIE2_MAPPING {
      samtools sort \
      -@12 \
      -o ${sample_id}_to_${reference_mag}.bam -    
-
+    
+    samtools index -@ 12 ${sample_id}_to_${reference_mag}.bam
     """
 }

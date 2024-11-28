@@ -1,8 +1,4 @@
 sample_id	mag_id	mag_path
 sample1	COMEBin_106.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BI/COMEBin_106.fa
-sample1	COMEBin_453.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BI/COMEBin_453.fa
-sample1	COMEBin_2090.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BI/COMEBin_2090.fa
-sample1	COMEBin_6957.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BI/COMEBin_6957.fa
-sample2	COMEBin_0.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BII/COMEBin_0.fa
 sample2	COMEBin_1071.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BII/COMEBin_1071.fa
-sample2	COMEBin_2983.fa	/home/daniel/Documents/Tesis/Results/02_Binning/Binning_with_Metaspades_extendedk/Best_bins/BII/COMEBin_2983.fa
+

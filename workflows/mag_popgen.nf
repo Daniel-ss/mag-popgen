@@ -39,18 +39,6 @@ workflow MAG_POPGEN {
     CHECKM2(mag_ch)
     EXTRACT_CONTIG_NAMES(mag_ch)
     //EXTRACT_CONTIG_NAMES.out.contig_names.view { "Contig names output: $it" }    
-
-    // Group BAM files by reference genome
-    grouped_bams = bam_ch
-    .map { sample_id, reference_id, bam -> tuple(reference_id, bam) }
-    .groupTuple(by: 0)
-
-    // Combine MAGs with grouped BAM files
-    mag_bam_combined = mag_ch
-    .map { sample_id, mag -> tuple(mag.baseName, mag) }
-    .join(grouped_bams)
-
-    // Run COVERM process
  
     // Parse input files
     PARSE_INPUTS(params.bam_paths, params.mag_paths)
@@ -155,8 +143,21 @@ workflow MAG_POPGEN {
     reads_index_ch = reads_ch.combine(BOWTIE2_BUILD.out.index)
 
     BOWTIE2_MAPPING(reads_index_ch)
+    
+    // Group BAM files by reference genome
+    grouped_bams = BOWTIE2_MAPPING.out
+    .map { sample_id, reference_mag, bam, bai -> tuple(reference_mag, bam) }
+    .groupTuple()
 
-    FREEBAYES(mag_bam_combined)
+    // Combine MAGs with grouped BAM files
+    freebayes_input = mag_ch
+    .map { sample_id, mag -> tuple(mag.simpleName, mag) }
+    .combine(grouped_bams, by: 0)
+
+    // Add a view() to check the channel content
+    freebayes_input.view { "Freebayes input: $it" }
+
+    FREEBAYES(freebayes_input)
 
     PROKKA(mag_ch)
     
