@@ -38,7 +38,6 @@ workflow MAG_POPGEN {
     // Run processes
     CHECKM2(mag_ch)
     EXTRACT_CONTIG_NAMES(mag_ch)
-    //EXTRACT_CONTIG_NAMES.out.contig_names.view { "Contig names output: $it" }    
  
     // Parse input files
     PARSE_INPUTS(params.bam_paths, params.mag_paths)
@@ -125,10 +124,7 @@ workflow MAG_POPGEN {
             }
         }.findAll { it != null }
     }
-    
-    // Add verification before COVERM
-    //sample_ch.subscribe { println "Sample channel entry: $it" }
- 
+     
     COVERM(sample_ch)
 
     // Generate heatmaps for each coverage file
@@ -146,16 +142,18 @@ workflow MAG_POPGEN {
     
     // Group BAM files by reference genome
     grouped_bams = BOWTIE2_MAPPING.out
-    .map { sample_id, reference_mag, bam, bai -> tuple(reference_mag, bam) }
-    .groupTuple()
+    .map { sample_id, reference_mag, bam, bai -> 
+       def ref_name = reference_mag.tokenize('_').drop(1).join('_')
+        tuple(ref_name, bam)
+    }
+    .groupTuple(by: 0)
 
     // Combine MAGs with grouped BAM files
     freebayes_input = mag_ch
     .map { sample_id, mag -> tuple(mag.simpleName, mag) }
     .combine(grouped_bams, by: 0)
-
-    // Add a view() to check the channel content
-    freebayes_input.view { "Freebayes input: $it" }
+    .map { ref_name, mag, bams -> tuple(ref_name, mag, bams.flatten()) }
+ 
 
     FREEBAYES(freebayes_input)
 

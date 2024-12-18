@@ -1,5 +1,4 @@
 process COVERM {
-    conda "/opt/miniforge3/envs/genomics"
 
     publishDir "${params.outdir}/coverm", mode: 'copy'
 

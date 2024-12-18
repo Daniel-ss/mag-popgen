@@ -1,5 +1,4 @@
 process FREEBAYES {
-    conda "/opt/miniforge3/envs/genomics"
 
     publishDir "${params.outdir}/freebayes", mode: 'copy'
 
@@ -9,7 +8,13 @@ process FREEBAYES {
     output:
     tuple val(reference_mag), path("${reference_mag}_unfiltered.vcf"), emit: vcf
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
+    
+    def args = task.ext.args ?: ''
+
     """
     # Index the reference genome
     samtools faidx ${mag}
