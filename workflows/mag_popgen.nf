@@ -7,6 +7,7 @@ include { BOWTIE2_BUILD } from '../modules/bowtie2_build'
 include { BOWTIE2_MAPPING } from '../modules/bowtie2_mapping'
 include { FREEBAYES } from '../modules/freebayes'
 include { PROKKA } from '../modules/prokka'
+include { FILTER_VCF } from '../modules/filter_vcf'
 include { POGENOM } from '../modules/pogenom'
 
 workflow MAG_POPGEN {
@@ -157,17 +158,20 @@ workflow MAG_POPGEN {
 
     FREEBAYES(freebayes_input)
 
+    FILTER_VCF(FREEBAYES.out.vcf)
+
     PROKKA(mag_ch)
     
     pogenom_input = combined_ch
-        .join(FREEBAYES.out.vcf, by: [0, 1])
+        .join(FILTER_VCF.out.filtered_vcf, by: [0, 1])
         .join(COVERM.out.coverage, by: [0, 1])
-    POGENOM(pogenom_input)
+        .join(PROKKA.out.annotation, by: [0])
+    POGENOM(pogenom_input, PROKKA.out.annotation)
 
     //Collect and emit results
     results = CHECKM2.out.results
        .mix(COVERM.out.coverage)
-       .mix(FREEBAYES.out.vcf)
+       .mix(FILTER_VCF.out.filtered_vcf)
        .mix(PROKKA.out.annotation)
        .mix(POGENOM.out.results)
        .collect()

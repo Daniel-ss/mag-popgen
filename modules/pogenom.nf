@@ -1,17 +1,27 @@
 process POGENOM {
-
-    conda "/home/daniel/.conda/envs/pogenom"
-
+    
     publishDir "${params.outdir}/pogenom", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(mag), path(bam_file), path(vcf_file), path(coverage_file)
+    tuple val(sample_id), val(reference_id), path(mag), path(bam), path(vcf), path(coverage)
+    path(gff_file)
 
     output:
-    tuple val(sample_id), path("${sample_id}_pogenom_results"), emit: results
+    tuple val(sample_id), val(reference_id), path("${sample_id}_${reference_id}_pogenom_output.txt"), emit: results
 
     script:
     """
-    pogenom --genome_file ${mag} --vcf_file ${vcf_file} --coverage_file ${coverage_file} --output_dir ${sample_id}_${mag.baseName}_pogenom_results
+    # Download pogenom.pl script
+    wget -O pogenom.pl https://raw.githubusercontent.com/EnvGen/POGENOM/refs/heads/master/pogenom.pl
+    
+    # Download genetic code file
+    wget -O standard_genetic_code.txt https://raw.githubusercontent.com/EnvGen/POGENOM/refs/heads/master/standard_genetic_code.txt
+    
+    # Run POGENOM
+    perl pogenom.pl \
+     --vcf_file ${vcf} \
+     --out ${sample_id}_${reference_id}_pogenom_output.txt \
+     --gff_file ${gff_file} \
+     --genetic_code_file standard_genetic_code.txt
     """
 }
