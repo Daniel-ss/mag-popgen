@@ -4,7 +4,7 @@ process EXTRACT_CONTIG_NAMES {
     publishDir "${params.outdir}/contig_names", mode: 'copy'
     
     input:
-    tuple val(sample_id), path(mag)
+    tuple val(sample_id), val(mag_id), path(mag)
     
     output:
     tuple val(sample_id), path("${sample_id}_${mag.baseName}_contigs.txt"), emit: contig_names

@@ -5,10 +5,10 @@ process PROKKA {
     publishDir "${params.outdir}/prokka", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(mag)
+    tuple val(sample_id), val(mag_id), path(mag)
 
     output:
-    tuple val(sample_id), path("${sample_id}_${mag.baseName}_annotation"), emit: annotation
+    tuple val(sample_id), val(mag.baseName), path("${sample_id}_${mag.baseName}_annotation"), emit: annotation
 
     script:
     """

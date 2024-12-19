@@ -13,9 +13,12 @@ include { POGENOM } from '../modules/pogenom'
 workflow MAG_POPGEN {
     // Create channels for input data
     mag_ch = Channel
-        .fromPath(params.mag_paths)
-        .splitCsv(header:true, sep:'\t')
-        .map { row -> tuple(row.sample_id, file(row.mag_path)) }
+      .fromPath(params.mag_paths)
+      .splitCsv(header:true, sep:'\t')
+      .map { row -> 
+          def mag_id = file(row.mag_path).name.replaceFirst(/\.fa$/, '')
+          tuple(row.sample_id, mag_id, file(row.mag_path))
+    }
 
     bam_ch = Channel
         .fromPath(params.bam_paths)
@@ -28,13 +31,6 @@ workflow MAG_POPGEN {
 	.fromPath(params.reads_paths)
 	.splitCsv(header:true, sep:'\t')
 	.map { row -> tuple(row.sample_id, file(row.forward), file(row.reverse)) } 
-
-    // Combine MAG and BAM channels
-    combined_ch = mag_ch.combine(bam_ch, by: 0)
-        .map { sample_id, mag, reference_id, bam -> 
-            reference_id == mag.baseName ? tuple(sample_id, reference_id, mag, bam) : null 
-        }
-        .filter { it != null }
 
     // Run processes
     CHECKM2(mag_ch)
@@ -132,8 +128,10 @@ workflow MAG_POPGEN {
     GENERATE_HEATMAP(COVERM.out.coverage)
     
     //Combine reads and mags channels
-    reads_mags_ch = mag_ch.combine(reads_ch, by: 0)
-    
+    reads_mags_ch = mag_ch
+    .map { sample_id, mag_id, mag -> tuple(sample_id, mag) }
+    .combine(reads_ch, by: 0)
+
     BOWTIE2_BUILD(mag_ch)
 
     // Combine reads and index channels
@@ -151,10 +149,9 @@ workflow MAG_POPGEN {
 
     // Combine MAGs with grouped BAM files
     freebayes_input = mag_ch
-    .map { sample_id, mag -> tuple(mag.simpleName, mag) }
+    .map { sample_id, mag_id, mag -> tuple(mag_id, mag) }
     .combine(grouped_bams, by: 0)
-    .map { ref_name, mag, bams -> tuple(ref_name, mag, bams.flatten()) }
- 
+    .map { mag_id, mag, bams -> tuple(mag_id, mag, bams.flatten()) }
 
     FREEBAYES(freebayes_input)
 
@@ -162,11 +159,15 @@ workflow MAG_POPGEN {
 
     PROKKA(mag_ch)
     
-    pogenom_input = combined_ch
-        .join(FILTER_VCF.out.filtered_vcf, by: [0, 1])
-        .join(COVERM.out.coverage, by: [0, 1])
-        .join(PROKKA.out.annotation, by: [0])
-    POGENOM(pogenom_input, PROKKA.out.annotation)
+    pogenom_input = mag_ch
+    .map { sample_id, mag_id, mag_file -> tuple(mag_id, sample_id, mag_file) }
+    .join(FILTER_VCF.out.filtered_vcf, by: 0)
+    .join(PROKKA.out.annotation.map { it -> [it[1], it[0], it[2]] }, by: 0)
+    .map { mag_id, sample_id, mag_file, vcf, prokka_sample_id, annotation -> 
+        tuple(sample_id, mag_id, mag_file, vcf, annotation)
+    }
+
+    POGENOM(pogenom_input)
 
     //Collect and emit results
     results = CHECKM2.out.results

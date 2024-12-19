@@ -28,6 +28,7 @@ process FREEBAYES {
      -F 0.01 \
      -q 15 \
      --report-monomorphic \
-     ${bams.collect{"-b $it"}.join(' ')} > ${reference_mag}_unfiltered.vcf
+     -g 200 \
+    ${bams.collect{"-b $it"}.join(' ')} > ${reference_mag}_unfiltered.vcf
     """
 }
