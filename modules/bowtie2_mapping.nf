@@ -14,6 +14,8 @@ process BOWTIE2_MAPPING {
     script:
     """
     bowtie2 \
+     --rg-id ${sample_id} \
+     --rg SM:${sample_id} \
      --threads 12 \
      -x ${reference_mag} \
      -1 ${R1} \
