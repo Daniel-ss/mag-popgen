@@ -9,6 +9,7 @@ include { FREEBAYES } from '../modules/freebayes'
 include { PROKKA } from '../modules/prokka'
 include { FILTER_VCF } from '../modules/filter_vcf'
 include { POGENOM } from '../modules/pogenom'
+include { SHINY_APP } from '../modules/shiny_app'
 
 workflow MAG_POPGEN {
     // Create channels for input data
@@ -168,6 +169,14 @@ workflow MAG_POPGEN {
     }
 
     POGENOM(pogenom_input)
+ 
+    pogenom_results = POGENOM.out.results.map { it[2] }.collect()
+
+    POGENOM.out.results.view()
+
+    if (params.run_shiny) {
+    SHINY_APP(pogenom_results, metadata_ch)
+    }    
 
     //Collect and emit results
     results = CHECKM2.out.results
@@ -175,6 +184,7 @@ workflow MAG_POPGEN {
        .mix(FILTER_VCF.out.filtered_vcf)
        .mix(PROKKA.out.annotation)
        .mix(POGENOM.out.results)
+       //.mix(SHINY_APP.out)
        .collect()
 
     emit:
